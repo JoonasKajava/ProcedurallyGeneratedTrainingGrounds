@@ -19,6 +19,8 @@ public class GeometryGeneration : MonoBehaviour
     private Terrain Terrain;
     private FastNoise NoiseGenerator;
 
+    private JobMonitor JobMonitor;
+
 
     private float[,] HeightMap;
     private float MaxHeight { get; set; }
@@ -35,6 +37,12 @@ public class GeometryGeneration : MonoBehaviour
         NoiseGenerator = new FastNoise();
 
         Seed = Seed > 0 ? Seed : new System.Random().Next(1, 996954);
+
+        JobMonitor = JobMonitor.CreateInstance();
+        JobMonitor.Title = "Terrain Generation";
+        JobMonitor.CreateInstance().Title = "test";
+        JobMonitor.CreateInstance().Title = "jotain";
+
         #endregion
 
         NoiseGenerator.SetSeed(Seed);
@@ -43,6 +51,8 @@ public class GeometryGeneration : MonoBehaviour
 
         HeightMap = new float[Terrain.terrainData.heightmapWidth, Terrain.terrainData.heightmapHeight];
 
+        Color[,] HeightMapForMonitor = new Color[Terrain.terrainData.heightmapWidth, Terrain.terrainData.heightmapHeight];
+
         for (int x = 0; x < Terrain.terrainData.heightmapWidth; x++)
         {
             for (int y = 0; y < Terrain.terrainData.heightmapHeight; y++)
@@ -50,13 +60,23 @@ public class GeometryGeneration : MonoBehaviour
                 float noise = NoiseGenerator.GetNoise(x, y);
                 MaxHeight = Math.Max(noise, MaxHeight);
                 MinHeight = Math.Min(noise, MinHeight);
-
                 HeightMap[x, y] = noise;
             }
         }
 
         HeightMap = ApplyCircularMask(HeightMap);
         HeightMap = NormalizeHeightMap(HeightMap);
+
+        for (int x = 0; x < Terrain.terrainData.heightmapWidth; x++)
+        {
+            for (int y = 0; y < Terrain.terrainData.heightmapHeight; y++)
+            {
+                float noise = HeightMap[x, y];
+                HeightMapForMonitor[x, y] = new Color(noise, noise, noise, 1);
+            }
+        }
+        JobMonitor.ImageArray = HeightMapForMonitor;
+
 
         Terrain.terrainData.SetHeights(0, 0, HeightMap);
     }
