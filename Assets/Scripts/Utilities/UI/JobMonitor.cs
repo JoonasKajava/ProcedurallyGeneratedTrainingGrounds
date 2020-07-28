@@ -155,16 +155,13 @@ public class JobMonitor : MonoBehaviour
 
     private void ImageArrayChanged(Color[,] colors)
     {
-        var FormatedColors = new Color[JobImage.texture.width * JobImage.texture.height];
-        for (int x = 0; x < JobImage.texture.width; x++)
-        {
-            for (int y = 0; y < JobImage.texture.height; y++)
-            {
-                FormatedColors[x + y] = colors[x, y];
-            }
-        }
-        (JobImage.texture as Texture2D).SetPixels(FormatedColors);
-        (JobImage.texture as Texture2D).Apply();
+
+        var NewTexture = new Texture2D(colors.GetLength(0), colors.GetLength(1));
+
+        NewTexture.SetPixels(colors.ToFlat());
+        NewTexture.Apply();
+
+        JobImage.texture = NewTexture;
     }
 
     private void OnValidate()
